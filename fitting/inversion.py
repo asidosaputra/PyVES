@@ -177,7 +177,8 @@ class SLB_LSInv():
             img = np.hstack((img, np.repeat(self.__rhotr_init[i], 100*self.__thick_init[i])))
         img = np.array(img[1:].reshape(-1, 1))
 
-        border = [min(np.repeat(self.__rhotr_init, 2)[:-1]),max(np.repeat(self.__rhotr_init, 2)[:-1]), min(d[1:]), max(d[1:]) ]
+        L, R, T, B = min(self.__rhotr_init), max(self.__rhotr_init), min(d[1:]), max(d[1:])
+        border = [ L+ 0.001*L, R+ 0.02*R, T+ 0.02*T, B+ 0.02*B]
         im = ax[1].imshow(img, aspect='auto', cmap='jet', origin='lower', extent=border)
 
         ax[1].set_title('Earth Model')
@@ -201,11 +202,13 @@ if __name__ == "__main__":
 
     epsilon = 0.005
     err_min = 0.01
-    damping = 10
+    damping = 0.01
 
     inversion = SLB_LSInv()
     rho, thick = inversion.fit(ab2, rhoap_obs, rhotr, thick, damping=damping, epsilon=epsilon, method='lm' , err_min= err_min, filter_coeff='guptasarma_7')
 
+    print('rho model :', rho)
+    print('thickness :', thick)
     
     inversion.plot_err()
     inversion.plot_mod()
