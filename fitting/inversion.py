@@ -48,7 +48,7 @@ class SLB_LSInv():
         if method != 'lm' and method != 'svd': 
             raise Exception('Method {0} is not supported! Please choose one `svd` or `lm` method!'.format(method))
 
-        list_filter_coeff = ['guptasarma_7','guptasarma_22']
+        list_filter_coeff = ['guptasarma_7','guptasarma_11','guptasarma_22']
         if filter_coeff not in list_filter_coeff:
             raise Exception('Filter Coefficient {0} is not supported! Suported filter coefficient are {1}'.format(filter_coeff, list_filter_coeff))
 
@@ -105,7 +105,8 @@ class SLB_LSInv():
 
     def __svd_inv(self, J, d):
         U, S, Vh = svd(J, full_matrices=False)
-        dmod = Vh.T@np.diag(S/(S + self.__damping))@U.T@d
+        SS = S/(S + self.__damping)
+        dmod = Vh.T@np.diag(SS)@U.T@d
         return dmod  
 
 
@@ -197,15 +198,15 @@ if __name__ == "__main__":
     ab2         = data[:, 0]
     rhoap_obs   = data[:, 1]
 
-    rhotr = np.array([120, 20, 2])
-    thick = np.array([10, 10])
+    rhotr = np.array([150, 20, 2])
+    thick = np.array([20, 15])
 
     epsilon = 0.005
     err_min = 0.01
     damping = 0.01
 
     inversion = SLB_LSInv()
-    rho, thick = inversion.fit(ab2, rhoap_obs, rhotr, thick, damping=damping, epsilon=epsilon, method='lm' , err_min= err_min, filter_coeff='guptasarma_7')
+    rho, thick = inversion.fit(ab2, rhoap_obs, rhotr, thick, damping=damping, epsilon=epsilon, method='lm' , err_min= err_min, filter_coeff='guptasarma_22')
 
     print('rho model :', rho)
     print('thickness :', thick)
