@@ -64,7 +64,8 @@ class SLB():
             img = np.hstack((img, np.repeat(self.__rhotr[i], 100*self.__thick[i])))
         img = np.array(img[1:].reshape(-1, 1))
 
-        border = [min(np.repeat(self.__rhotr, 2)[:-1]),max(np.repeat(self.__rhotr, 2)[:-1]), min(d[1:]), max(d[1:]) ]
+        L, R, T, B = min(self.__rhotr), max(self.__rhotr), min(d[1:]), max(d[1:])
+        border = [ L+ 0.001*L, R+ 0.02*R, T+ 0.02*T, B+ 0.02*B]
         im = ax[1].imshow(img, aspect='auto', cmap='jet', origin='lower', extent=border)
 
         ax[1].set_title('Earth Model')
@@ -120,7 +121,7 @@ class SLB():
         return self.__rms_err
 
 if __name__ == "__main__":
-    fname = '../samples/sample1.txt'
+    fname = './samples/sample1.txt'
     data = np.loadtxt(fname)
     ab2 = data[:, 0]
     rhoap_obs = data[:, 1]
