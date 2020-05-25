@@ -206,7 +206,7 @@ if __name__ == "__main__":
     damping = 0.01
 
     inversion = SLB_LSInv()
-    rho, thick = inversion.fit(ab2, rhoap_obs, rhotr, thick, damping=damping, epsilon=epsilon, method='lm' , err_min= err_min, filter_coeff='guptasarma_22')
+    rho, thick = inversion.fit(ab2, rhoap_obs, rhotr, thick, damping=damping, epsilon=epsilon, method='lm' , err_min= err_min, filter_coeff='guptasarma_7')
 
     print('rho model :', rho)
     print('thickness :', thick)
