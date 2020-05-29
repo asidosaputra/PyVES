@@ -18,12 +18,12 @@ class SLB():
     def run(self, ab2, rhoap_obs, rhotr, thick, filter_coeff='guptasarma_7'):
         '''
         parameter:
-            :ab2 : half distance of electrode [m], 1D np.array
-            :rhoap_obs : apperant resistivity from observation data [ohm.m], 1D np.array
-            :rhotr : true resistivity of earth model, 1D np.array
-            :thick : thicknes of layers, 1D np.array
-            :filter_coeff : type of filter coefficien (e.g default 'guptasarma_7', sevent filter of guptasarma filter)
-        
+        :ab2 : half distance of electrode [m], 1D np.array
+        :rhoap_obs : apperant resistivity from observation data [ohm.m], 1D np.array
+        :rhotr : true resistivity of earth model, 1D np.array
+        :thick : thicknes of layers, 1D np.array
+        :filter_coeff : type of filter coefficien (e.g default 'guptasarma_7', sevent filter of guptasarma filter)
+    
         '''
         self.__ab2 = ab2
         self.__rhoap_obs = rhoap_obs
@@ -36,9 +36,10 @@ class SLB():
 
     def plot_mod(self, save_fig = True):
         '''
-            for plotting of curve matching and earth model
+        for plotting of curve matching and earth model
+
         parameter:
-            save_fig : if 'True' will saving figure.
+        save_fig : if 'True' will saving figure.
         '''
         d = []
         d.append(0)
@@ -80,6 +81,8 @@ class SLB():
         plt.show()
 
     def __lin_fil(self, L):
+        '''
+        '''
         layer = len(self.__rhotr) - 1
         T = self.__rhotr[-1] 
 
@@ -97,10 +100,14 @@ class SLB():
         return rho_app
 
     def __rms_error(self):
+        '''
+        '''
         err = np.sqrt(np.mean((self.__rhoap_obs - self.__rhoap_cal) ** (2)))
         return err
 
     def __filter_coefficent(self, filter_coeff):
+        '''
+        '''
         if filter_coeff == 'guptasarma_7':
             a = np.array([-0.17445, 0.09672, 0.36789, 0.63906, 0.91023, 1.1814, 1.45257])
             phi = ([0.1732, 0.2945, 2.147, -2.1733, 0.6646, -0.1215, 0.0155])
@@ -125,8 +132,8 @@ if __name__ == "__main__":
     data = np.loadtxt(fname)
     ab2 = data[:, 0]
     rhoap_obs = data[:, 1]
-    rhotr = np.array([120, 30, 2])
-    thick = np.array([10, 10])
+    rhotr = np.array([100, 50, 20])
+    thick = np.array([5, 10])
     
     lf = SLB()
     lf.run(ab2, rhoap_obs, rhotr, thick, filter_coeff='guptasarma_7')
