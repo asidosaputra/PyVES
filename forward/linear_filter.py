@@ -137,4 +137,4 @@ if __name__ == "__main__":
     
     lf = SLB()
     lf.run(ab2, rhoap_obs, rhotr, thick, filter_coeff='guptasarma_7')
-    lf.plot_mod(save_fig = False)
+    lf.plot_mod(save_fig = True)
