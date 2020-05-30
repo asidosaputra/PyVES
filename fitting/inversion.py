@@ -36,7 +36,7 @@ class SLB_LSInv():
 
         self.__slb = SLB()
 
-    def fit(self, ab2, rhoap_obs, rhotr_init, thick_init, damping=0.01, epsilon=0.05, err_min=0.05, method='lm', filter_coeff='guptasarma_7'):
+    def fit(self, ab2, rhoap_obs, rhotr_init, thick_init, damping=0.01, epsilon=0.05, err_min=0.05, iter_max = 100, method='lm', filter_coeff='guptasarma_7'):
         '''
         Inversion procces.
         params
@@ -93,12 +93,12 @@ class SLB_LSInv():
 
         #concat of apperant resistivities and thickness to 2D matricess
         self.__mod = np.vstack((self.__rhotr_init.reshape(-1, 1), self.__thick_init.reshape(-1, 1))) #models matricess
-        self.__inversion(err_min, method)
+        self.__inversion(err_min, method, iter_max)
         return self.__rhotr_init, self.__thick_init
            
-    def __inversion(self, err_min, method):
+    def __inversion(self, err_min, method, iter_max):
         '''
-        This function for inversion proccessing
+        This function for inversion proccessing.
         '''
         i = 0
         while self.__rms_err > err_min:
@@ -106,7 +106,7 @@ class SLB_LSInv():
             self.__rms_err = self.__slb.rms_err
             self.__err_hist.append( self.__rms_err)
 
-            if i == 100 or self.__rms_err < err_min:
+            if i == iter_max or self.__rms_err < err_min:
                 break
 
             d = (self.__rhoap_obs - self.__rhoap_cal).reshape(-1, 1)          
@@ -126,6 +126,7 @@ class SLB_LSInv():
 
     def __lm_inv(self, J, d):
         '''
+        Levenberg-Marquart(LM) Inversion.
         '''
         Wm = self.__damping*np.eye(self.__N)
         dmod = inv(J.T @ J + Wm)@J.T@d
@@ -133,6 +134,7 @@ class SLB_LSInv():
 
     def __svd_inv(self, J, d):
         '''
+        Inversion using SVD thecnique.
         '''
         U, S, Vh = svd(J, full_matrices=False)
         SS = S/(S + self.__damping)
@@ -148,8 +150,9 @@ class SLB_LSInv():
         rho : resistivities of layers, 1D np.array
         h   : thickness of layers, 1D np.array
         eps : partubation parameter, float
+
         return:
-        J   : Jacobian matrices, 2D np.array
+        J   : Jacobian matricces, 2D np.array
         '''
         del_m = self.__epsilon*(self.__mod.flatten())            #paturbation of models
 
@@ -169,7 +172,11 @@ class SLB_LSInv():
     
     def plot_err(self):
         '''
+        plotting error each iteration
         '''
+        if len(self.__err_hist) == 0:
+            raise Exception('Do fit method first!!')
+
         iter = np.arange(0, len(self.__err_hist))
         self.__num_fig += 1
 
@@ -181,13 +188,15 @@ class SLB_LSInv():
     
     def plot_mod(self, save_fig = True):
         '''
-        for plotting of curve matching and earth model
+        for plotting of curve fitting and earth models
         
         params
         save_fig : if 'True' will saving figure.
         '''
+        if len(self.__err_hist) == 0:
+            raise Exception('Do fit method first!!')
+        
         self.__num_fig += 1
-
         d = []
         d.append(0)
         for i in range(len(self.__thick_init)):
@@ -225,6 +234,10 @@ class SLB_LSInv():
         if save_fig : plt.savefig('Forward.png', dpi=120)
         plt.colorbar(im,ax=ax[1], label=r'$\rho_{true}  [\Omega m]$')
 
+    @property
+    def J(self):
+        return self.__jacobian()
+
 
 if __name__ == "__main__":
     fname = 'samples/sample1.txt'
@@ -240,7 +253,7 @@ if __name__ == "__main__":
     damping = 0.01
 
     inversion = SLB_LSInv()
-    rho, thick = inversion.fit(ab2, rhoap_obs, rhotr, thick, damping=damping, epsilon=epsilon, method='lm' , err_min= err_min, filter_coeff='guptasarma_7')
+    rho, thick = inversion.fit(ab2, rhoap_obs, rhotr, thick, damping=damping, epsilon=epsilon, method='lm' , err_min= err_min, iter_max = 20, filter_coeff='guptasarma_7')
 
     print('rho model :', rho)
     print('thickness :', thick)
