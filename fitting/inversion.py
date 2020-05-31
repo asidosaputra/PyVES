@@ -180,13 +180,16 @@ class SLB_LSInv():
         iter = np.arange(0, len(self.__err_hist))
         self.__num_fig += 1
 
-        plt.figure(self.__num_fig)
+        fig = plt.figure(self.__num_fig)
         plt.plot(iter, self.__err_hist, marker='o')
         plt.ylabel('RMS Error [%]')
         plt.xlabel('Iterasi')
         plt.title('RMS Error')
+        
+        return fig
+        
     
-    def plot_mod(self, save_fig = True):
+    def plot_mod(self):
         '''
         for plotting of curve fitting and earth models
         
@@ -204,7 +207,7 @@ class SLB_LSInv():
 
         d = np.repeat(d, 2)
 
-        _, ax = plt.subplots(nrows=1, ncols=2, figsize=(15, 5), num = self.__num_fig)
+        fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(15, 5), num = self.__num_fig)
         ax[0].set_title('Curve Fitting')
         ax[0].plot(self.__ab2, self.__rhoap_obs, color = 'r', marker='o', label= 'Data Observation ' )
         ax[0].plot(self.__ab2, self.__rhoap_cal, label= 'Data Forward')
@@ -231,8 +234,9 @@ class SLB_LSInv():
         ax[1].set_xlabel(r'$\rho_{true}  [\Omega m]$') 
         ax[1].set_ylabel('Depth [m]')
         ax[1].invert_yaxis()
-        if save_fig : plt.savefig('Forward.png', dpi=120)
         plt.colorbar(im,ax=ax[1], label=r'$\rho_{true}  [\Omega m]$')
+        return fig
+        
 
     @property
     def J(self):
@@ -259,5 +263,5 @@ if __name__ == "__main__":
     print('thickness :', thick)
     
     inversion.plot_err()
-    inversion.plot_mod()
+    fig =inversion.plot_mod()
     plt.show()
