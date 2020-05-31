@@ -9,6 +9,13 @@ from numpy.linalg import inv, svd
 from copy import deepcopy as dc
 
 class SLB_LSInv():
+    '''
+    An object for Least-Square Inversion methods. There are two thecnique of inversion supported are 
+    Levenberg-Marquart(LM) Inversion and Single Value Decomposition(SVD)
+    There are several methods in this object,  fit(), plot_mod() and plot_err(). 
+    fit() function for running inversion proccess, plot_mod() for ploting final model and 
+    plot_err() for plotting err vs iteration. 
+    '''
     def __init__(self):
         self.__ab2 = None
         self.__rhoap_obs = None
@@ -29,8 +36,23 @@ class SLB_LSInv():
 
         self.__slb = SLB()
 
-    def fit(self, ab2, rhoap_obs, rhotr_init, thick_init, damping=0.01, epsilon=0.05, err_min=0.05, method='lm', filter_coeff='guptasarma_7'):
+    def fit(self, ab2, rhoap_obs, rhotr_init, thick_init, damping=0.01, epsilon=0.05, err_min=0.05, iter_max = 100, method='lm', filter_coeff='guptasarma_7'):
+        '''
+        Inversion procces.
+        params
+        :ab2: a half of electroede space [m], 1D np.array
+        :rhoap_obs: Apperant resistivities from observation data [ohm.m], 1D np.array
+        :rhotr_init: initial model of true resistivities [ohm.m], 1D np.array
+        :thick_init: initial model of thickness of layers [m], 1D np.array
+        :damping: dumping factor for levenberg-marquart inversion, float
+        :epsilon: paturbation model for forward finite difference in decimal, float
+        :err_min: expectation minimum error to stop iteration during inversion proccessing, float
+        :method: method for inversion, 'lm' and 'svd', str
+        :filter_coff: filter coefficient for forward modelling, str
 
+        returns
+        a tupple that contain two list the final result of inversion, the first list is true resistivities and second list is thickness layer
+        '''
         #Check input parameters
         dim_err_mess = 'Dimension of {0} is invalid. Make sure {0} has 1D numpy array!'
         if ab2.ndim !=1:
@@ -46,7 +68,7 @@ class SLB_LSInv():
             raise Exception('Your model is invalid. Number of thickness must be equel to (number of resistivities - 1)')
         
         if method != 'lm' and method != 'svd': 
-            raise Exception('Method {0} is not supported! Please choose one `svd` or `lm` method!'.format(method))
+            raise Exception('Method {0} is not supported! Please choose one of `svd` or `lm` method!'.format(method))
 
         list_filter_coeff = ['guptasarma_7','guptasarma_11','guptasarma_22']
         if filter_coeff not in list_filter_coeff:
@@ -69,18 +91,22 @@ class SLB_LSInv():
         self.__n = len(self.__rhotr_init)   #number of layers
         self.__N = 2*self.__n - 1           #number of models
 
+        #concat of apperant resistivities and thickness to 2D matricess
         self.__mod = np.vstack((self.__rhotr_init.reshape(-1, 1), self.__thick_init.reshape(-1, 1))) #models matricess
-        self.__inversion(err_min, method)
+        self.__inversion(err_min, method, iter_max)
         return self.__rhotr_init, self.__thick_init
            
-    def __inversion(self, err_min, method):
+    def __inversion(self, err_min, method, iter_max):
+        '''
+        This function for inversion proccessing.
+        '''
         i = 0
         while self.__rms_err > err_min:
             self.__rhoap_cal = self.__slb.run(self.__ab2, self.__rhoap_obs, self.__rhotr_init, self.__thick_init, self.__filter_coeff)
             self.__rms_err = self.__slb.rms_err
             self.__err_hist.append( self.__rms_err)
 
-            if i == 100 or self.__rms_err < err_min:
+            if i == iter_max or self.__rms_err < err_min:
                 break
 
             d = (self.__rhoap_obs - self.__rhoap_cal).reshape(-1, 1)          
@@ -99,11 +125,17 @@ class SLB_LSInv():
             i +=1
 
     def __lm_inv(self, J, d):
+        '''
+        Levenberg-Marquart(LM) Inversion.
+        '''
         Wm = self.__damping*np.eye(self.__N)
         dmod = inv(J.T @ J + Wm)@J.T@d
         return dmod
 
     def __svd_inv(self, J, d):
+        '''
+        Inversion using SVD thecnique.
+        '''
         U, S, Vh = svd(J, full_matrices=False)
         SS = S/(S + self.__damping)
         dmod = Vh.T@np.diag(SS)@U.T@d
@@ -112,13 +144,15 @@ class SLB_LSInv():
 
     def __jacobian(self):
         '''
+        Jacobian matricess calculated by forward finite differential.
         params:
-            ab2 : half distance of electrode, 1D np.array
-            rho : resistivities of layers, 1D np.array
-            h   : thickness of layers, 1D np.array
-            eps : partubation parameter, float
+        ab2 : half distance of electrode, 1D np.array
+        rho : resistivities of layers, 1D np.array
+        h   : thickness of layers, 1D np.array
+        eps : partubation parameter, float
+
         return:
-            J   : Jacobian matrices, 2D np.array
+        J   : Jacobian matricces, 2D np.array
         '''
         del_m = self.__epsilon*(self.__mod.flatten())            #paturbation of models
 
@@ -137,23 +171,35 @@ class SLB_LSInv():
         return J
     
     def plot_err(self):
+        '''
+        plotting error each iteration
+        '''
+        if len(self.__err_hist) == 0:
+            raise Exception('Do fit method first!!')
+
         iter = np.arange(0, len(self.__err_hist))
         self.__num_fig += 1
 
-        plt.figure(self.__num_fig)
+        fig = plt.figure(self.__num_fig)
         plt.plot(iter, self.__err_hist, marker='o')
         plt.ylabel('RMS Error [%]')
         plt.xlabel('Iterasi')
         plt.title('RMS Error')
+        
+        return fig
+        
     
-    def plot_mod(self, save_fig = True):
+    def plot_mod(self):
         '''
-            for plotting of curve matching and earth model
-        parameter:
-            save_fig : if 'True' will saving figure.
+        for plotting of curve fitting and earth models
+        
+        params
+        save_fig : if 'True' will saving figure.
         '''
+        if len(self.__err_hist) == 0:
+            raise Exception('Do fit method first!!')
+        
         self.__num_fig += 1
-
         d = []
         d.append(0)
         for i in range(len(self.__thick_init)):
@@ -161,7 +207,7 @@ class SLB_LSInv():
 
         d = np.repeat(d, 2)
 
-        _, ax = plt.subplots(nrows=1, ncols=2, figsize=(15, 5), num = self.__num_fig)
+        fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(15, 5), num = self.__num_fig)
         ax[0].set_title('Curve Fitting')
         ax[0].plot(self.__ab2, self.__rhoap_obs, color = 'r', marker='o', label= 'Data Observation ' )
         ax[0].plot(self.__ab2, self.__rhoap_cal, label= 'Data Forward')
@@ -188,8 +234,13 @@ class SLB_LSInv():
         ax[1].set_xlabel(r'$\rho_{true}  [\Omega m]$') 
         ax[1].set_ylabel('Depth [m]')
         ax[1].invert_yaxis()
-        if save_fig : plt.savefig('Forward.png', dpi=120)
         plt.colorbar(im,ax=ax[1], label=r'$\rho_{true}  [\Omega m]$')
+        return fig
+        
+
+    @property
+    def J(self):
+        return self.__jacobian()
 
 
 if __name__ == "__main__":
@@ -206,11 +257,11 @@ if __name__ == "__main__":
     damping = 0.01
 
     inversion = SLB_LSInv()
-    rho, thick = inversion.fit(ab2, rhoap_obs, rhotr, thick, damping=damping, epsilon=epsilon, method='lm' , err_min= err_min, filter_coeff='guptasarma_22')
+    rho, thick = inversion.fit(ab2, rhoap_obs, rhotr, thick, damping=damping, epsilon=epsilon, method='lm' , err_min= err_min, iter_max = 20, filter_coeff='guptasarma_7')
 
     print('rho model :', rho)
     print('thickness :', thick)
     
     inversion.plot_err()
-    inversion.plot_mod()
+    fig =inversion.plot_mod()
     plt.show()
