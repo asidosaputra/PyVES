@@ -6,6 +6,6 @@ This package support for forward and inverse modelling. Background mathematics o
 
 
 ## Forward Modelling
-<img src="https://github.com/asidosaputra/PyVES/blob/master/examples/Forward.png">
+<img src="https://github.com/asidosaputra/PyVES/blob/master/examples/Forward_Model.png">
 
 ## Inversion Modelling
