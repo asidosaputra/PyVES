@@ -34,7 +34,7 @@ class SLB():
         self.__rms_err = self.__rms_error()
         return self.__rhoap_cal
 
-    def plot_mod(self, save_fig = True):
+    def plot_mod(self):
         '''
         for plotting of curve matching and earth model
 
@@ -48,7 +48,7 @@ class SLB():
 
         d = np.repeat(d, 2)
 
-        _, ax = plt.subplots(nrows=1, ncols=2, figsize=(15, 5))
+        fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(15, 5))
         ax[0].set_title('Curve Matching')
         ax[0].plot(self.__ab2, self.__rhoap_obs, color = 'r', marker='o', label= 'Data Observation ' )
         ax[0].plot(self.__ab2, self.__rhoap_cal, label= 'Data Forward')
@@ -74,11 +74,9 @@ class SLB():
         ax[1].set_xscale('log')
         ax[1].set_xlabel(r'$\rho_{true}  [\Omega m]$') 
         ax[1].set_ylabel('Depth [m]')
-        ax[1].invert_yaxis()
-        if save_fig : plt.savefig('Forward.png', dpi=120)
-    
-        plt.colorbar(im,ax=ax[1], label=r'$\rho_{true}  [\Omega m]$')
-        plt.show()
+        ax[1].invert_yaxis()   
+        fig.colorbar(im,ax=ax[1], label=r'$\rho_{true}  [\Omega m]$')
+        return fig
 
     def __lin_fil(self, L):
         '''
@@ -137,4 +135,5 @@ if __name__ == "__main__":
     
     lf = SLB()
     lf.run(ab2, rhoap_obs, rhotr, thick, filter_coeff='guptasarma_7')
-    lf.plot_mod(save_fig = True)
+    lf.plot_mod()
+    plt.show()
