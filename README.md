@@ -6,7 +6,5 @@ This package support for forward and inverse modelling. Background mathematics o
 
 
 ## Forward Modelling
-<p align="center">
-  <img src="https://blog.minitab.com/hubfs/Imported_Blog_Media/flp_linear.gif">
-</p>
+<img src="https://blog.minitab.com/hubfs/Imported_Blog_Media/flp_linear.gif">
 ## Inversion Modelling
