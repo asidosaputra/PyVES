@@ -6,6 +6,11 @@ This package support for forward and inverse modelling. Background mathematics o
 
 
 ## Forward Modelling
-<img src="https://github.com/asidosaputra/PyVES/blob/master/examples/Forward_Model.png">
+Eath model result of inversion
+
+<img src="https://github.com/asidosaputra/PyVES/blob/master/examples/Inversion_Earth_Model.pngg">
 
 ## Inversion Modelling
+Error each iteration
+
+<img src="https://github.com/asidosaputra/PyVES/blob/master/examples/Inversion_Error.png">
